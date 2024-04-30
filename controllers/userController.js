@@ -4,28 +4,26 @@ const User = require('../models/User');
 
 const register = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, color } = req.body;
 
         const expression = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-        const pass=  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&^])[A-Za-z\d@.#$!%*?&]{8,15}$/;
-    
+        const pass = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&^])[A-Za-z\d@.#$!%*?&]{8,15}$/;
+
         // check input for validation
         if (!expression.test(email.toString())) {
             return res.status(407).json({ message: 'Enter valid email' });
-          }
-        if (!pass.test(password.toString())) {
-          return res.status(407).json({ message: 'Enter valid password with uppercase, lowercase, number & @' });
         }
-        
+        if (!pass.test(password.toString())) {
+            return res.status(407).json({ message: 'Enter valid password with uppercase, lowercase, number & @' });
+        }
 
-
-        const existinguser = await User.findOne({ email:email })
+        const existinguser = await User.findOne({ email: email })
         if (existinguser) {
             return res.status(409).json({
                 message: "User already exists"
             })
         }
-        const user = new User({ username, email, password });
+        const user = new User({ username, email, password, color});
         await user.save();
         res.status(200).json({ message: "User register successfully" });
     } catch (err) {
