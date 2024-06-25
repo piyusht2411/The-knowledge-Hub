@@ -18,6 +18,18 @@ const userSchema = new mongoose.Schema({
     color:{
         type:String,
         required:true,
+    },
+    isVerified:{
+        type:Boolean,
+        default:false,
+    },
+    otp:{
+        type:String,
+        default:null,
+    },
+    otpExpireAt:{
+        type:Date,
+        default:Date.now
     }
 }, {
     timestamps: true
@@ -29,6 +41,7 @@ userSchema.pre('save', async function (next) {
     if (!user.isModified('password')) { return next(); }
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(user.password, salt);
+    user.otp = await bcrypt.hash(user.otp, salt);
     next();
 
 })
