@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { authenticator } = require('otplib');
 const User = require('../models/User');
-const sendMail  = require('../utils/emailer');
+const sendMail = require('../utils/emailer');
 
 const register = async (req, res) => {
     try {
@@ -87,6 +87,10 @@ const login = async (req, res, next) => {
                 message: "User doesn't exist"
             })
         }
+        if (!user.isVerified) {
+            return res.status(403).json({ message: "User not verified!" })
+        }
+        
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(409).json({
