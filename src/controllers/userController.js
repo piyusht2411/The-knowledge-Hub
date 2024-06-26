@@ -18,15 +18,27 @@ const register = async (req, res) => {
         if (!pass.test(password.toString())) {
             return res.status(407).json({ message: 'Enter valid password with uppercase, lowercase, number & @' });
         }
-
-        const existinguser = await User.findOne({ email: email })
-        if (existinguser) {
-            return res.status(409).json({
-                message: "User already exists"
-            })
-        }
-
         const otp = authenticator.generateSecret().slice(0, 6);
+
+        const existingUser = await User.findOne({ email: email })
+        if (existingUser) {
+            if (existingUser.isVerified) {
+                return res.status(409).json({
+                    message: "User already exists"
+                });
+            } else {
+                sendMail(email, "Email Verification", `Your email verification otp is ${otp}. Use this otp to verify your email, this will expire in 10 minutes`);
+
+                existingUser.username = username;
+                existingUser.password = password;
+                existingUser.color = color;
+                existingUser.otp = otp;
+                existingUser.otpExpireAt = new Date(Date.now() + 10 * 60 * 1000);
+                await existingUser.save();
+
+                return res.status(200).json({ message: "Otp generated and sent successfully!" });
+            }
+        }
 
         sendMail(email, "Email Verification", `Your email verification otp is ${otp}. Use this otp to verify your email, this will be expire 10 minutes`);
 
@@ -37,7 +49,7 @@ const register = async (req, res) => {
     } catch (err) {
         console.log(err);
         res.status(500).json({
-            message: "Something went wrong"
+            message: "Something went wrong", error: err.message
         })
     }
 }
@@ -90,7 +102,7 @@ const login = async (req, res, next) => {
         if (!user.isVerified) {
             return res.status(403).json({ message: "User not verified!" })
         }
-        
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(409).json({

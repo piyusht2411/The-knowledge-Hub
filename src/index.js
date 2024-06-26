@@ -2,7 +2,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const routes = require('./routes/userRoutes')
+const userRoutes = require('./routes/userRoutes');
+const blogRoutes = require('./routes/blogRoutes');
+const imageRoutes = require('./routes/imageRoutes');
 const cookieParser = require('cookie-parser');
 // import bodyParser from 'body-parser';
 // import cors from 'cors';
@@ -11,7 +13,10 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use("/user", routes);
+app.use("/user", userRoutes);
+app.use("/api", blogRoutes);
+app.use("/api", imageRoutes);
+
 require('dotenv').config();
 require('./config/db');
 

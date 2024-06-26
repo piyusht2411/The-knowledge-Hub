@@ -30,7 +30,15 @@ const userSchema = new mongoose.Schema({
     otpExpireAt:{
         type:Date,
         default:Date.now
-    }
+    },
+    blogs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Blog'
+    }],
+    comments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment'
+    }]
 }, {
     timestamps: true
 }
