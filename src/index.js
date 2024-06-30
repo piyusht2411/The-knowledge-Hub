@@ -10,7 +10,13 @@ const cookieParser = require('cookie-parser');
 // import cors from 'cors';
 
 const app = express();
-app.use(cors());
+var corsOptions = {
+  origin: ["https://p2p-client-blue.vercel.app", "http://localhost:3000", "https://piyusht2411.github.io", "http://127.0.0.1:5500"],
+  credentials: true
+};
+
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use("/user", userRoutes);
