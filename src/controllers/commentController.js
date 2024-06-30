@@ -81,7 +81,7 @@ const getCommentsOfBlog = async (req, res) => {
             path: 'comments',
             populate: {
                 path: 'author',
-                select: 'username'
+                select: 'username color image'
             }
         });
 

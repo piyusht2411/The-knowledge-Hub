@@ -10,7 +10,7 @@ const createBlog = async (req, res) => {
         const user = await User.findById(userId);
         user.blogs.push(savedBlog._id);
         await user.save();
-        res.status(201).json({ message: "Blog created successfully!" });
+        res.status(201).json({ message: "Blog created successfully!", blog: savedBlog });
     } catch (err) {
         res.status(500).json({ message: 'Error creating blog', error: err.message });
     }
@@ -35,7 +35,7 @@ const editBlog = async (req, res) => {
         if (imageUrl) blog.image = imageUrl;
         await blog.save();
 
-        res.status(201).json({ message: "Blog updated successfully!" });
+        res.status(201).json({ message: "Blog updated successfully!", blog: blog });
 
     } catch (err) {
         res.status(500).json({ message: 'Error updating blog', error: err.message });
@@ -57,9 +57,9 @@ const deleteBlog = async (req, res) => {
 
         await Blog.findByIdAndDelete(blogId);
         const user = await User.findById(userId);
-        user.blogs = user.blogs.filter(blog => blog.toString()!== blogId);
+        user.blogs = user.blogs.filter(blog => blog.toString() !== blogId);
         await user.save();
-        res.status(201).json({ message: "Blog deleted successfully!" });
+        res.status(201).json({ message: "Blog deleted successfully!", blogId: blogId });
 
     } catch (err) {
         res.status(500).json({ message: 'Error deleting blog', error: err.message });
@@ -83,7 +83,7 @@ const getAllBlogs = async (req, res) => {
         const blogs = await Blog.find({ author: userId })
             .skip(skip)
             .limit(pageSize)
-            .populate('author', 'name');
+            .populate('author', 'name color image');
 
         res.status(200).json({ blogs });
     } catch (err) {
@@ -96,7 +96,7 @@ const getBlog = async (req, res) => {
         const { blogId } = req.params;
         const userId = req.userId;
 
-        const blog = await Blog.findById(blogId).populate('author', 'name');
+        const blog = await Blog.findById(blogId).populate('author', 'name color image');
         if (!blog) {
             return res.status(404).json({ message: 'Blog not found' });
         }
@@ -109,10 +109,10 @@ const getBlog = async (req, res) => {
         const isLiked = user.likedBlogs.includes(blogId);
         const isDisliked = user.dislikedBlogs.includes(blogId);
 
-        res.status(200).json({ 
-            blog: blog.toObject(), 
-            isLiked, 
-            isDisliked 
+        res.status(200).json({
+            blog: blog.toObject(),
+            isLiked,
+            isDisliked
         });
     } catch (err) {
         res.status(500).json({ message: 'Error getting blog', error: err.message });
@@ -121,7 +121,7 @@ const getBlog = async (req, res) => {
 
 const likeOrDislikeBlog = async (req, res) => {
     try {
-        const { blogId,action } = req.params;
+        const { blogId, action } = req.params;
         const userId = req.userId;
 
         const blog = await Blog.findById(blogId);
