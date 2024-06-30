@@ -90,7 +90,7 @@ const otpVerification = async (req, res) => {
     }
 }
 
-const login = async (req, res, next) => {
+const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email })
@@ -180,7 +180,6 @@ const editProfile = async (req, res) => {
         res.status(500).json({ message: 'Something went wrong' });
     }
 }
-
 
 module.exports = {
     register,
