@@ -67,46 +67,111 @@ const deleteBlog = async (req, res) => {
 
 }
 
-const getAllBlogs = async (req, res)=>{
-    try{
+const getAllBlogs = async (req, res) => {
+    try {
         const userId = req.userId;
-    const pageNumber = req.query.pageNumber || 1;
-    const pageSize = req.query.pageSize || 10;
+        const pageNumber = parseInt(req.query.pageNumber) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 10;
 
-    const user = await User.findById(userId);
-    if(!user){
-        return res.status(404).json({ message: 'User not found' });
-    }
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 
-    const skip = (pageNumber -1 ) * pageSize;
+        const skip = (pageNumber - 1) * pageSize;
 
-    const blogs = await Blog.find({ author: userId }).skip(skip).limit(pageSize);
+        const blogs = await Blog.find({ author: userId })
+            .skip(skip)
+            .limit(pageSize)
+            .populate('author', 'name');
 
-    res.status(200).json({blogs: blogs});
-    }catch (err) {
+        res.status(200).json({ blogs });
+    } catch (err) {
         res.status(500).json({ message: 'Error getting blogs', error: err.message });
     }
 }
 
 const getBlog = async (req, res) => {
-    try{
+    try {
         const { blogId } = req.params;
-        const blog = await Blog.findById(blogId);
-        if(!blog){
+        const userId = req.userId;
+
+        const blog = await Blog.findById(blogId).populate('author', 'name');
+        if (!blog) {
             return res.status(404).json({ message: 'Blog not found' });
         }
-        res.status(200).json({blog: blog});
 
-    }
-    catch (err) {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const isLiked = user.likedBlogs.includes(blogId);
+        const isDisliked = user.dislikedBlogs.includes(blogId);
+
+        res.status(200).json({ 
+            blog: blog.toObject(), 
+            isLiked, 
+            isDisliked 
+        });
+    } catch (err) {
         res.status(500).json({ message: 'Error getting blog', error: err.message });
     }
 }
+
+const likeOrDislikeBlog = async (req, res) => {
+    try {
+        const { blogId,action } = req.params;
+        const userId = req.userId;
+
+        const blog = await Blog.findById(blogId);
+        if (!blog) {
+            return res.status(404).json({ message: 'Blog not found' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (action === 'like') {
+            if (user.dislikedBlogs.includes(blogId)) {
+                blog.dislikeCount--;
+                user.dislikedBlogs.pull(blogId);
+            }
+            if (!user.likedBlogs.includes(blogId)) {
+                blog.likeCount++;
+                user.likedBlogs.push(blogId);
+            }
+        } else if (action === 'dislike') {
+            if (user.likedBlogs.includes(blogId)) {
+                blog.likeCount--;
+                user.likedBlogs.pull(blogId);
+            }
+            if (!user.dislikedBlogs.includes(blogId)) {
+                blog.dislikeCount++;
+                user.dislikedBlogs.push(blogId);
+            }
+        } else {
+            return res.status(400).json({ message: 'Invalid action' });
+        }
+
+        await blog.save();
+        await user.save();
+
+        res.status(200).json({ message: 'Action performed successfully', blog });
+    } catch (err) {
+        res.status(500).json({ message: 'Error performing action', error: err.message });
+    }
+}
+
+
 
 module.exports = {
     createBlog,
     editBlog,
     deleteBlog,
     getAllBlogs,
-    getBlog
+    getBlog,
+    likeOrDislikeBlog
 }
