@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
-    username: {
+    name: {
         type: String,
         required: true,
     },
@@ -15,21 +15,24 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    color:{
-        type:String,
-        required:true,
+    color: {
+        type: String,
+        required: true,
     },
-    isVerified:{
-        type:Boolean,
-        default:false,
+    image:{
+        type: String,
     },
-    otp:{
-        type:String,
-        default:null,
+    isVerified: {
+        type: Boolean,
+        default: false,
     },
-    otpExpireAt:{
-        type:Date,
-        default:Date.now
+    otp: {
+        type: String,
+        default: null,
+    },
+    otpExpireAt: {
+        type: Date,
+        default: Date.now
     },
     blogs: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -38,11 +41,26 @@ const userSchema = new mongoose.Schema({
     comments: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Comment'
+    }],
+    likedBlogs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Blog'
+    }],
+    dislikedBlogs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Blog'
+    }],
+    likedComments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment'
+    }],
+    dislikedComments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment'
     }]
 }, {
     timestamps: true
-}
-);
+});
 
 userSchema.pre('save', async function (next) {
     const user = this;
@@ -51,8 +69,8 @@ userSchema.pre('save', async function (next) {
     user.password = await bcrypt.hash(user.password, salt);
     user.otp = await bcrypt.hash(user.otp, salt);
     next();
-
-})
+});
 
 const User = mongoose.model('User', userSchema);
+
 module.exports = User;
