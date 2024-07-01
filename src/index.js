@@ -6,6 +6,10 @@ const userRoutes = require('./routes/userRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const imageRoutes = require('./routes/imageRoutes');
 const cookieParser = require('cookie-parser');
+const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger/swagger.json'); // Path to your swagger.json
+
 // import bodyParser from 'body-parser';
 // import cors from 'cors';
 
@@ -14,6 +18,8 @@ var corsOptions = {
   origin: ["https://p2p-client-blue.vercel.app", "http://localhost:3000", "https://piyusht2411.github.io", "http://127.0.0.1:5500"],
   credentials: true
 };
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 
 app.use(cors(corsOptions));
